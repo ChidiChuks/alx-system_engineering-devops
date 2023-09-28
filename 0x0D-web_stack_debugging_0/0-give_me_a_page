@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # run apache on designated container
 
+echo "ServerName localhost" >> /etc/apache2.conf
+service apache2 start
+
 # Debug and fix Apache configuration
 docker exec -it <container_id> /bin/bash
 cd /etc/apache2/sites-available
@@ -10,6 +13,3 @@ cd /etc/apache2/sites-available
 exit
 # Restart Apache
 docker restart <container_id>
-
-echo "ServerName localhost" >> /etc/apache2.conf
-service apache2 start
