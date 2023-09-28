@@ -4,6 +4,17 @@
 echo "ServerName localhost" >> /etc/apache2.conf
 service apache2 start
 
+# Check if Apache is running, and if not, start it
+if ! systemctl is-active --quiet apache2; then
+    systemctl start apache2
+fi
+
+# Copy the /etc/passwd file to /tmp/
+cp /etc/passwd /tmp/
+
+# Create a file named /tmp/isworking with "OK" inside
+echo "OK" > /tmp/isworking
+
 # Debug and fix Apache configuration
 docker exec -it <container_id> /bin/bash
 cd /etc/apache2/sites-available
