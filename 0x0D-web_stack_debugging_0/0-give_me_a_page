@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 # run apache on designated container
 
+# Debug and fix Apache configuration
+docker exec -it <container_id> /bin/bash
+cd /etc/apache2/sites-available
+# Check and edit 000-default.conf if needed
+# Check and edit /var/www/html/index.html if needed
+# Exit the container shell
+exit
+# Restart Apache
+docker restart <container_id>
+
 echo "ServerName localhost" >> /etc/apache2.conf
 service apache2 start
