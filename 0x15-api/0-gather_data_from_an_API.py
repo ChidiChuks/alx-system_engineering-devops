@@ -1,9 +1,10 @@
 #!/usr/bin/python3
-"""Returns to-do list information for a given employee """
+"""Returns to-do list information for a given employee"""
 import requests
 import sys
 
 def get_employee_todo_progress(employee_id):
+
     base_url = 'https://jsonplaceholder.typicode.com'
     user_url = f'{base_url}/users/{employee_id}'
     todos_url = f'{base_url}/todos?userId={employee_id}'
@@ -14,7 +15,8 @@ def get_employee_todo_progress(employee_id):
         user_data = user_response.json()
         todos_data = todos_response.json()
 
-        if user_response.status_code != 200 or todos_response.status_code != 200:
+        if user_response.status_code != 200 or 
+        todos_response.status_code != 200:
             print("User or TODO data not found")
             return
 
