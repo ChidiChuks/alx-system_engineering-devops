@@ -1,55 +1,49 @@
-#!/usr/bin/python3
-"""Function to count words in all hot posts of a given Reddit subreddit."""
-import requests
+import praw
 
+def count_words(subreddit, word_list, after=None, counts=None):
+    # Initialize PRAW (Reddit API) client
+    reddit = praw.Reddit(client_id='YOUR_CLIENT_ID',
+                         client_secret='YOUR_CLIENT_SECRET',
+                         user_agent='YOUR_USER_AGENT')
 
-def count_words(subreddit, word_list, instances={}, after="", count=0):
-    """Prints counts of given words found in hot posts of a given subreddit.
+    # Create a dictionary to store word counts
+    if counts is None:
+        counts = {}
 
-    Args:
-        subreddit (str): The subreddit to search.
-        word_list (list): The list of words to search for in post titles.
-        instances (obj): Key/value pairs of words/counts.
-        after (str): The parameter for the next page of the API results.
-        count (int): The parameter of results matched thus far.
-    """
-    url = "https://www.reddit.com/r/{}/hot/.json".format(subreddit)
-    headers = {
-        "User-Agent": "linux:0x16.api.advanced:v1.0.0 (by /u/bdov_)"
-    }
-    params = {
-        "after": after,
-        "count": count,
-        "limit": 100
-    }
-    response = requests.get(url, headers=headers, params=params,
-                            allow_redirects=False)
-    try:
-        results = response.json()
-        if response.status_code == 404:
-            raise Exception
-    except Exception:
-        print("")
+    # Base case: no more keywords to search for
+    if not word_list:
+        # Sort the counts by count (descending) and word (ascending)
+        sorted_counts = sorted(counts.items(), key=lambda x: (-x[1], x[0]))
+
+        # Print the sorted counts
+        for word, count in sorted_counts:
+            print(f"{word.lower()}: {count}")
         return
 
-    results = results.get("data")
-    after = results.get("after")
-    count += results.get("dist")
-    for c in results.get("children"):
-        title = c.get("data").get("title").lower().split()
-        for word in word_list:
-            if word.lower() in title:
-                times = len([t for t in title if t == word.lower()])
-                if instances.get(word) is None:
-                    instances[word] = times
-                else:
-                    instances[word] += times
+    # Get the next batch of hot articles in the subreddit
+    subreddit_obj = reddit.subreddit(subreddit)
+    hot_articles = subreddit_obj.hot(limit=10, params={"after": after})
 
-    if after is None:
-        if len(instances) == 0:
-            print("")
-            return
-        instances = sorted(instances.items(), key=lambda kv: (-kv[1], kv[0]))
-        [print("{}: {}".format(k, v)) for k, v in instances]
+    # Initialize counts for this keyword
+    word = word_list[0].lower()
+    if word not in counts:
+        counts[word] = 0
+
+    # Search for the keyword in each article title
+    for submission in hot_articles:
+        title = submission.title.lower()
+        if word in title:
+            counts[word] += title.count(word)
+
+    # Recursively call count_words with the rest of the word list
+    count_words(subreddit, word_list[1:], submission.name, counts)
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 3:
+        print("Usage: {} <subreddit> <list of keywords>".format(sys.argv[0]))
     else:
-        count_words(subreddit, word_list, instances, after, count)
+        subreddit = sys.argv[1]
+        word_list = sys.argv[2].split()
+        count_words(subreddit, word_list)
